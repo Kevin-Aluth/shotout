@@ -23,7 +23,6 @@ function _draw()
 		bullet:draw()
 	end
 	for enemy in all(enemies) do
-		print(enemy.state)
 		enemy:draw()
 	end
 end
@@ -74,10 +73,16 @@ function animate(s,fl_x)
 			false)
 end
 
+function reset_anim(a)
+	a.curr_fr=1
+	a.fr_timer=0
+end
+
 -- player obj
 p={
 	state=states.normal,
 	speed=1,
+	health=100,
 	x=64,
 	y=64,
 	dx=0,
@@ -110,11 +115,17 @@ p={
 	shoot=function(s)
 		if input.shoot then
 			c_bullet(
-				s.x,s.y,s.lx,s.ly,3,
+				s.x,s.y,s.lx,s.ly,3,10,
 				create_anim({16,17},3),
 				60,8,8
 			)
 		end
+	end,
+	take_damage=function(s,b)
+		s.health-=b.damage
+		if s.health<=0 then
+		end
+		del(bullets,b)
 	end,
 	get_state=function(s)
 		if s.dx != 0 or
@@ -141,10 +152,10 @@ p={
 
 bullets={}
 function c_bullet(
-	x,y,dx,dy,speed,anim,range,w,h,player
+	x,y,dx,dy,speed,damage,anim,range,w,h,player
 ) 
 	add(bullets,{
-		speed=speed,
+		damage=damage,
 		x=x,
 		y=y,
 		dx=dx,
@@ -155,10 +166,24 @@ function c_bullet(
 		w=w,
 		h=h,
 		player=player,
+		ch_coll=function(s,o)
+			if box_coll(s,o) then
+				o:take_damage(s)
+				return true
+			end
+			return false
+		end,
 		update=function(s)
 			s.range-=1
 			s.x+=s.dx*s.speed
 			s.y+=s.dy*s.speed
+			if player!=nil then
+				s:ch_coll(player)
+			else
+				for enemy in all(enemies) do
+					s:ch_coll(enemy)
+				end
+			end
 			if s.range<=0 then
 				del(bullets,s)
 			end
@@ -175,6 +200,7 @@ function c_enemy(
 )
 	if t==1 then
 		add(enemies,{
+			health=20,
 			x=x,
 			y=y,
 			w=8,
@@ -184,7 +210,19 @@ function c_enemy(
 			dx=0,
 			dy=0,
 			speed=0.5,
+			sh_timer=20,
+			c_sh_timer=0,
 			curr_anim=create_anim({18},2),
+			take_damage=function(s,b)
+			
+			end,
+			take_damage=function(s,b)
+				s.health-=b.damage
+				if s.health<=0 then
+					del(enemies,s)
+				end
+				del(bullets,b)
+			end,
 			get_state=function(s)
 				local dist_x = p.x-s.x
 				local dist_y = p.y-s.y
@@ -204,9 +242,17 @@ function c_enemy(
 				s.y+=s.dy*s.speed
 			end,
 			attack=function(s)
-				s:follow()
+				if s.c_sh_timer<=s.sh_timer then
+					s.c_sh_timer+=1
+					return
+				end
+				s.dx,s.dy=manhattan(
+					p.x-s.x,
+					p.y-s.y
+				)
+				s.c_sh_timer=0
 				c_bullet(
-					s.x,s.y,s.dx,s.dy,2,
+					s.x,s.y,s.dx,s.dy,2,10,
 					create_anim({16,17},3),
 					60,8,8,p
 				)
@@ -268,6 +314,24 @@ input={
 		s.shoot=btnp(❎)
 	end
 }
+-->8
+-- physics
+function box_coll(
+	o1,o2
+)
+	x1,y1,w1,h1=o1.x,o1.y,o1.w,o1.h
+	x2,y2,w2,h2=o2.x,o2.y,o2.w,o2.h
+	return
+	(x1-w1/2>x2-w2/2 and 
+	x1-w1/2<x2+w2/2 or
+	x1+w1/2>x2-w2/2 and
+	x1+w1/2<x2+w2/2) 
+	and
+	(y1-h1/2>y2-h2/2 and
+	y1-h1/2<y2+h2/2 or
+	y1+h1/2>y2-h2/2 and
+	y1+h1/2<y2+h2/2)
+end
 __gfx__
 00000000000330000003300000033000000330000003300000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000003333000033330000333300003333000033330000000000000000000000000000000000000000000000000000000000000000000000000000000000
