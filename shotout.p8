@@ -91,6 +91,7 @@ p={
 	ly=1,
 	w=8,
 	h=8,
+	dead=false,
 	anims={
 		--idle
 		create_anim({1,2,3},10),
@@ -124,6 +125,7 @@ p={
 	take_damage=function(s,b)
 		s.health-=b.damage
 		if s.health<=0 then
+			s.dead=true
 		end
 		del(bullets,b)
 	end,
@@ -136,6 +138,7 @@ p={
 		end
 	end,
 	draw=function(s)
+		if s.dead then return end
 		if s.state==states.idle then
 			s.curr_anim=s.anims[1]
 		elseif s.state==states.running then
@@ -144,6 +147,7 @@ p={
 		animate(s,s.lx>0)
 	end,
 	update=function(s)
+		if s.dead then return end
 		s:shoot()
 		s:move()
 		s:get_state()
@@ -252,7 +256,7 @@ function c_enemy(
 				)
 				s.c_sh_timer=0
 				c_bullet(
-					s.x,s.y,s.dx,s.dy,2,10,
+					s.x,s.y,s.dx,s.dy,2,0,
 					create_anim({16,17},3),
 					60,8,8,p
 				)
@@ -322,15 +326,15 @@ function box_coll(
 	x1,y1,w1,h1=o1.x,o1.y,o1.w,o1.h
 	x2,y2,w2,h2=o2.x,o2.y,o2.w,o2.h
 	return
-	(x1-w1/2>x2-w2/2 and 
-	x1-w1/2<x2+w2/2 or
-	x1+w1/2>x2-w2/2 and
-	x1+w1/2<x2+w2/2) 
+	(x1-w1/2>=x2-w2/2 and 
+	x1-w1/2<=x2+w2/2 or
+	x1+w1/2>=x2-w2/2 and
+	x1+w1/2<=x2+w2/2) 
 	and
-	(y1-h1/2>y2-h2/2 and
-	y1-h1/2<y2+h2/2 or
-	y1+h1/2>y2-h2/2 and
-	y1+h1/2<y2+h2/2)
+	(y1-h1/2>=y2-h2/2 and
+	y1-h1/2<=y2+h2/2 or
+	y1+h1/2>=y2-h2/2 and
+	y1+h1/2<=y2+h2/2)
 end
 __gfx__
 00000000000330000003300000033000000330000003300000000000000000000000000000000000000000000000000000000000000000000000000000000000
