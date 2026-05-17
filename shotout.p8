@@ -193,7 +193,7 @@ function c_bullet(
 			end
 		end,
 		draw=function(s)
-			animate(s)
+			anim_play(s)
 		end
 	})
 end
@@ -280,7 +280,7 @@ function u_normalize(x,y)
 	return x/sqrt(magn),y/sqrt(magn)
 end
 
-function u_u_manhattan(x,y)
+function u_manhattan(x,y)
 	local d = abs(x)+abs(y)
 	local dx, dy
 	if d>0 then
