@@ -88,7 +88,6 @@ p={
 	dx=0,
 	dy=0,
 	lx=1,
-	ly=1,
 	w=8,
 	h=8,
 	dead=false,
@@ -104,9 +103,8 @@ p={
 					input.v != 0 then
 			input.h,input.v=u_normalize(input.h,input.v)	
 		end
-		if input.h != 0 or
-					input.v != 0 then
-			s.lx,s.ly=input.h,input.v
+		if input.h != 0 then
+			s.lx=input.h
 		end
 		s.dy=input.v*s.speed
 		s.dx=input.h*s.speed
@@ -115,11 +113,19 @@ p={
 	end,
 	shoot=function(s)
 		if input.shoot then
-			c_bullet(
-				s.x,s.y,s.lx,s.ly,3,10,
-				c_anim({16,17},3),
-				60,8,8
-			)
+			local target=u_nearest_enemy(s.x,s.y)
+			if target!=nil then
+				local dx,dy=u_normalize(
+					target.x-s.x,
+					target.y-s.y
+				)
+				if dx!=0 then s.lx=dx end
+				c_bullet(
+					s.x,s.y,dx,dy,3,10,
+					c_anim({16,17},3),
+					60,8,8
+				)
+			end
 		end
 	end,
 	take_damage=function(s,b)
@@ -275,6 +281,21 @@ end
 
 -->8
 --utils
+function u_nearest_enemy(x,y)
+	local nearest=nil
+	local min_dist=32767
+	for enemy in all(enemies) do
+		local dx=enemy.x-x
+		local dy=enemy.y-y
+		local dist=dx*dx+dy*dy
+		if dist<min_dist then
+			min_dist=dist
+			nearest=enemy
+		end
+	end
+	return nearest
+end
+
 function u_normalize(x,y)
 	local magn=x^2+y^2
 	return x/sqrt(magn),y/sqrt(magn)
