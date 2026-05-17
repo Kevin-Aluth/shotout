@@ -115,7 +115,7 @@ p={
 		if input.shoot then
 			local target=u_nearest_enemy(s.x,s.y)
 			if target!=nil then
-				local dx,dy=u_normalize(
+				local dx,dy=u_manhattan(
 					target.x-s.x,
 					target.y-s.y
 				)
