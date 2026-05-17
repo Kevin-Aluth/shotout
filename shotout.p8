@@ -171,7 +171,7 @@ function c_bullet(
 		h=h,
 		player=player,
 		ch_coll=function(s,o)
-			if u_box_collision(s,o) then
+			if p_box_collision(s,o) then
 				o:take_damage(s)
 				return true
 			end
@@ -317,7 +317,7 @@ input={
 }
 -->8
 -- physics
-function u_box_collision(
+function p_box_collision(
 	o1,o2
 )
 	local x1,y1,w1,h1=o1.x,o1.y,o1.w,o1.h
