@@ -40,7 +40,7 @@ e_states={
 }
 
 -- animation helper
-function create_anim(fs,fr_dr)
+function c_anim(fs,fr_dr)
 	return {
 		frames=fs,
 		fr_duration=fr_dr,
@@ -60,7 +60,7 @@ function create_anim(fs,fr_dr)
 	}
 end
 
-function animate(s,fl_x)
+function anim_play(s,fl_x)
 	s.curr_anim:animate()
 	spr(
 		s.curr_anim.
@@ -73,7 +73,7 @@ function animate(s,fl_x)
 			false)
 end
 
-function reset_anim(a)
+function anim_reset(a)
 	a.curr_fr=1
 	a.fr_timer=0
 end
@@ -94,15 +94,15 @@ p={
 	dead=false,
 	anims={
 		--idle
-		create_anim({1,2,3},10),
+		c_anim({1,2,3},10),
 		--run
-		create_anim({4,5},20)
+		c_anim({4,5},20)
 	},
 	curr_anim=nil,
 	move=function(s)
 		if input.h != 0 and
 					input.v != 0 then
-			input.h,input.v=normalize(input.h,input.v)	
+			input.h,input.v=u_normalize(input.h,input.v)	
 		end
 		if input.h != 0 or
 					input.v != 0 then
@@ -117,7 +117,7 @@ p={
 		if input.shoot then
 			c_bullet(
 				s.x,s.y,s.lx,s.ly,3,10,
-				create_anim({16,17},3),
+				c_anim({16,17},3),
 				60,8,8
 			)
 		end
@@ -144,7 +144,7 @@ p={
 		elseif s.state==states.running then
 			s.curr_anim=s.anims[2]
 		end
-		animate(s,s.lx>0)
+		anim_play(s,s.lx>0)
 	end,
 	update=function(s)
 		if s.dead then return end
@@ -171,7 +171,7 @@ function c_bullet(
 		h=h,
 		player=player,
 		ch_coll=function(s,o)
-			if box_coll(s,o) then
+			if u_box_collision(s,o) then
 				o:take_damage(s)
 				return true
 			end
@@ -216,10 +216,7 @@ function c_enemy(
 			speed=0.5,
 			sh_timer=20,
 			c_sh_timer=0,
-			curr_anim=create_anim({18},2),
-			take_damage=function(s,b)
-			
-			end,
+			curr_anim=c_anim({18},2),
 			take_damage=function(s,b)
 				s.health-=b.damage
 				if s.health<=0 then
@@ -238,7 +235,7 @@ function c_enemy(
 				end
 			end,
 			follow=function(s)
-				s.dx,s.dy=manhattan(
+				s.dx,s.dy=u_manhattan(
 					p.x-s.x,
 					p.y-s.y
 				)
@@ -250,14 +247,14 @@ function c_enemy(
 					s.c_sh_timer+=1
 					return
 				end
-				s.dx,s.dy=manhattan(
+				s.dx,s.dy=u_manhattan(
 					p.x-s.x,
 					p.y-s.y
 				)
 				s.c_sh_timer=0
 				c_bullet(
-					s.x,s.y,s.dx,s.dy,2,0,
-					create_anim({16,17},3),
+					s.x,s.y,s.dx,s.dy,2,10,
+					c_anim({16,17},3),
 					60,8,8,p
 				)
 			end,
@@ -278,12 +275,12 @@ end
 
 -->8
 --utils
-function normalize(x,y)
+function u_normalize(x,y)
 	local magn=x^2+y^2
 	return x/sqrt(magn),y/sqrt(magn)
 end
 
-function manhattan(x,y)
+function u_u_manhattan(x,y)
 	local d = abs(x)+abs(y)
 	local dx, dy
 	if d>0 then
@@ -320,11 +317,11 @@ input={
 }
 -->8
 -- physics
-function box_coll(
+function u_box_collision(
 	o1,o2
 )
-	x1,y1,w1,h1=o1.x,o1.y,o1.w,o1.h
-	x2,y2,w2,h2=o2.x,o2.y,o2.w,o2.h
+	local x1,y1,w1,h1=o1.x,o1.y,o1.w,o1.h
+	local x2,y2,w2,h2=o2.x,o2.y,o2.w,o2.h
 	return
 	(x1-w1/2>=x2-w2/2 and 
 	x1-w1/2<=x2+w2/2 or
