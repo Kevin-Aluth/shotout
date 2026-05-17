@@ -267,7 +267,7 @@ function c_enemy(
 				end
 			end,
 			draw=function(s)
-				animate(s)
+				anim_play(s)
 			end
 		})
 	end
